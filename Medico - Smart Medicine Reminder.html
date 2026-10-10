@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Medico - Smart Medicine Reminder</title>
+<style>
+:root{--bg:#f1f7fa;--sf:#fff;--tx:#17323f;--mu:#5f7885;--bd:#dbe7ee;--teal:#0f9d92;--tealD:#0b7f76;--tealS:#dff5f2;--blue:#2f7bc0;--blueS:#e3f0fb;--side:#12435a;--green:#1e9a5a;--greenS:#def4e7;--red:#c53b3b;--redS:#fbe4e4;--gray:#e9eef1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1b22;--sf:#14262f;--tx:#e4f0f5;--mu:#93aab5;--bd:#27414d;--tealS:#12403d;--blueS:#173349;--greenS:#12392a;--redS:#41191b;--gray:#233640;--side:#0b2a38;--blue:#6db3ee;--green:#4fce8a;--red:#f08080;--tealD:#5fd6cb}}
+:root[data-theme="dark"]{--bg:#0d1b22;--sf:#14262f;--tx:#e4f0f5;--mu:#93aab5;--bd:#27414d;--tealS:#12403d;--blueS:#173349;--greenS:#12392a;--redS:#41191b;--gray:#233640;--side:#0b2a38;--blue:#6db3ee;--green:#4fce8a;--red:#f08080;--tealD:#5fd6cb}
+*{box-sizing:border-box}html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx)}
+h1,h2,h3,p{margin:0}h1{font-size:1.6rem}h2{font-size:1.15rem}h3{font-size:1.05rem}.mu{color:var(--mu)}.cap{text-transform:capitalize}.grow{flex:1;min-width:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid rgba(47,123,192,.5);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 15px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);font-weight:600;cursor:pointer}
+.btn:hover:not(:disabled){background:var(--blueS)}.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn.p{background:var(--teal);border-color:var(--teal);color:#fff}.btn.p:hover:not(:disabled){background:#0b7f76}
+.btn.d{background:var(--red);border-color:var(--red);color:#fff}.btn.do{color:var(--red)}.btn.sm{padding:5px 11px;font-size:.9rem}
+.side{position:fixed;top:0;bottom:0;left:0;width:240px;background:var(--side);color:#fff;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 18px) 14px 18px;z-index:5}
+.brand{font-size:1.3rem;font-weight:700;padding:4px 10px 20px}.brand span{color:#5fd6cb}
+.side nav{display:flex;flex-direction:column;gap:4px;flex:1}
+.nv{background:none;border:0;color:#cfe3ec;text-align:left;padding:11px 12px;border-radius:8px;font-weight:500;cursor:pointer}
+.nv:hover{background:rgba(255,255,255,.08)}.nv.on{background:var(--teal);color:#fff}
+.who{padding:8px 12px;background:rgba(255,255,255,.1);border-radius:8px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.disc{font-size:.75rem;color:#a9c5d2;margin-top:10px}
+main{margin-left:240px;max-width:1100px;padding:28px 24px 48px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(18,67,90,.08)}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{padding:16px}.stat b{display:block;font-size:1.8rem;line-height:1.1;color:var(--tealD)}.stat span{color:var(--mu);font-size:.9rem}
+.bd{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:600;white-space:nowrap}
+.bd.active,.bd.taken{background:var(--greenS);color:var(--green)}.bd.upcoming,.bd.pending{background:var(--blueS);color:var(--blue)}
+.bd.completed{background:var(--gray);color:var(--mu)}.bd.missed{background:var(--redS);color:var(--red)}
+.sch{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--bd);border-left:4px solid var(--blue);border-radius:10px;flex-wrap:wrap}
+.row.taken{border-left-color:var(--green)}.row.missed{border-left-color:var(--red)}
+.row .t{font-weight:700;min-width:76px;color:var(--tealD)}
+.note{background:var(--bg);border-radius:8px;padding:7px 10px;font-size:.9rem;color:var(--mu)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.mc{display:flex;flex-direction:column;gap:10px;border-left:4px solid var(--bd)}
+.mc.active{border-left-color:var(--green)}.mc.upcoming{border-left-color:var(--blue)}.mc.completed{opacity:.85}
+.mh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{background:var(--tealS);color:var(--tealD);padding:3px 10px;border-radius:999px;font-size:.85rem;font-weight:600}
+.acts{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+.flt{display:grid;grid-template-columns:1fr 170px 170px;gap:12px;margin-bottom:20px;padding:14px}
+.in{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--sf)}
+.in:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,157,146,.2)}.in.bad{border-color:var(--red)}
+form{display:flex;flex-direction:column;gap:18px;max-width:760px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.f{display:flex;flex-direction:column;gap:6px}.f label{font-weight:600;font-size:.92rem}.err{color:var(--red);font-size:.85rem;min-height:0}
+.tl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.tr{display:flex;gap:6px}.tr .in{width:150px}.x{border:1px solid var(--bd);background:var(--sf);border-radius:8px;width:38px;cursor:pointer}
+.al{padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:.95rem}.al.e{background:var(--redS);color:var(--red)}.al.s{background:var(--greenS);color:var(--green)}.al.i{background:var(--blueS);color:var(--blue)}
+.empty{text-align:center;padding:34px 16px;display:flex;flex-direction:column;align-items:center;gap:8px}.empty p{color:var(--mu);max-width:380px;margin-bottom:6px}
+.empty i{width:54px;height:54px;border-radius:50%;background:var(--tealS);color:var(--tealD);display:grid;place-items:center;font-style:normal;font-size:1.5rem}
+.mb{position:fixed;inset:0;background:rgba(10,30,40,.5);display:grid;place-items:center;padding:16px;z-index:20}
+.md{background:var(--sf);border-radius:12px;padding:24px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:10px}.md .acts{justify-content:flex-end}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);z-index:30}
+.center{min-height:60vh;display:grid;place-items:center;text-align:center;color:var(--mu);padding:20px}
+.sum{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:820px){.side{position:static;width:auto;flex-direction:row;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px;gap:8px;overflow-x:auto}
+.brand{padding:0 8px}.side nav{flex-direction:row;flex:none}.nv{white-space:nowrap;padding:8px 10px}.side .bot{display:none}main{margin-left:0;padding:20px 16px 40px}.flt{grid-template-columns:1fr}}
+@media(max-width:560px){.g2,.stats{grid-template-columns:1fr}.row .btn{width:100%}h1{font-size:1.35rem}}
+.bar{height:10px;background:var(--gray);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--teal)}
+.sec{margin-bottom:18px;display:flex;flex-direction:column;gap:10px}.sw{width:92px;height:46px;border-radius:8px;border:2px solid var(--bd);cursor:pointer;font-weight:600}
+.locked .side,.locked #fab{display:none}.locked main{margin:0;max-width:none}.auth{max-width:440px;margin:5vh auto;display:flex;flex-direction:column;gap:14px}
+.kid [data-nav=add],.kid [data-nav=meds],.kid [data-nav=set],.kid [data-act=edit],.kid [data-act=del],.kid #fab{display:none}
+#fab{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:15;border-radius:99px;padding:12px 18px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#chat{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);width:min(360px,calc(100vw - 32px));height:min(480px,65vh);display:none;flex-direction:column;z-index:15;padding:0;overflow:hidden}#chat.on{display:flex}
+.ch{padding:12px 14px;background:var(--side);color:#fff;display:flex;justify-content:space-between;align-items:center}.ch button{background:none;border:0;color:#fff;font-size:1.3rem;cursor:pointer}
+#cm{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}.m{max-width:88%;padding:8px 12px;border-radius:12px;white-space:pre-wrap}.m.u{align-self:flex-end;background:var(--teal);color:#fff}.m.b{background:var(--blueS)}
+.cf{display:flex;gap:8px;padding:10px;border-top:1px solid var(--bd)}
+.thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0}.thumb.ph{display:grid;place-items:center;background:var(--tealS);color:var(--tealD);font-size:1.3rem;font-weight:700}.thumb.round{border-radius:50%}.hd{display:flex;gap:10px;align-items:center}
+.bd.skipped{background:var(--gray);color:var(--mu)}.flt2{display:grid;grid-template-columns:200px 1fr;gap:12px;margin-bottom:20px;padding:14px}.kid [data-act=hmark]{display:none}
+@media(max-width:820px){.flt2{grid-template-columns:1fr}}
+#bgl{position:fixed;inset:0;z-index:-1;background:var(--bg)}
+</style>
+</head>
+<body>
+<div id="bgl"></div>
+<aside class="side">
+  <div class="brand"><span>+</span> Medico</div>
+  <nav>
+    <button class="nv" data-nav="dash">Dashboard</button>
+    <button class="nv" data-nav="meds">My Medicines</button>
+    <button class="nv" data-nav="add">Add Medicine</button>
+    <button class="nv" data-nav="rem">Reminders</button>
+    <button class="nv" data-nav="hist">History</button>
+    <button class="nv" data-nav="set">Settings</button>
+  </nav>
+  <div class="bot"><div class="who" id="who"></div><p class="disc">Medico only reminds you of the schedule you enter. It does not give medical advice.</p></div>
+</aside>
+<main id="main"><div class="center">Loading your medicines...</div></main>
+<div id="modal"></div><div id="toast"></div>
+<button class="btn p" id="fab" data-act="chat">Ask Medico</button>
+<div class="card" id="chat" role="dialog" aria-label="Medico assistant"><div class="ch"><strong>Medico assistant</strong><button data-act="chat" aria-label="Close chat">&times;</button></div>
+<div id="cm"><div class="m b">Hi! Ask me how to use Medico, or general questions about reminders and healthy habits. I can't give medical advice or choose doses.</div></div>
+<div class="cf"><input class="in" id="ci" placeholder="Type your question" aria-label="Your question"><button class="btn p" data-act="send">Send</button></div></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const nowT=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+const mins=t=>{const [h,m]=t.split(':').map(Number);return h*60+m};
+const fmtT=t=>new Date(2000,0,1,...t.split(':').map(Number)).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+const fmtD=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})};
+const TYPES=['tablet','capsule','syrup','injection','drops','ointment','inhaler','other'];
+const FREQ={once:['Once daily',['08:00'],1,1],twice:['Twice daily',['08:00','20:00'],2,2],thrice:['Three times daily',['08:00','14:00','20:00'],3,3],custom:['Custom',['08:00'],1,10]};
+const medStatus=(m,d)=>d<m.start?'upcoming':d>m.end?'completed':'active';
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+let col=null,meds=[],doses={},view='dash',editing=null,confirmMed=null,ready=false,loadErr='',flash='',userName='',saving=false;
+let filters={q:'',type:'',status:''};const notified=new Set();let acct=null,cfg={},water={},cur='me',kidMode=null,locked=false,unlocked=false,formImg='',kidImg='',editKid=null,histRange=7,histMed='';
+
+function toast(msg,type='s'){const t=$('#toast');t.innerHTML=`<div class="al ${type}" role="status">${esc(msg)}</div>`;clearTimeout(toast.h);toast.h=setTimeout(()=>t.innerHTML='',3500)}
+
+/* ---------- data ---------- */
+function schedule(all){
+  const d=today(),n=mins(nowT()),out=[];
+  (all?meds:pm()).filter(m=>medStatus(m,d)==='active').forEach(m=>m.times.forEach(t=>{
+    const id=`dose_${d}_${m.id}_${t.replace(':','')}`,taken=!!doses[id];
+    out.push({m,t,id,st:taken?'taken':n>mins(t)+60?'missed':'pending'});
+  }));
+  return out.sort((a,b)=>a.t.localeCompare(b.t)||a.m.name.localeCompare(b.m.name));
+}
+async function markDose(id,m,t){
+  try{await col.doc(id).set({date:today(),medId:m.id,time:t,status:'taken',takenAt:Date.now()});toast(`${m.name} at ${fmtT(t)} marked as taken`)}
+  catch(e){toast('Could not save: '+(e.message||'unknown error'),'e')}
+}
+async function undoDose(id){try{await col.doc(id).delete()}catch(e){toast('Could not undo: '+(e.message||'unknown error'),'e')}}
+async function deleteMed(){
+  const m=confirmMed;$('#cdel').disabled=true;$('#cdel').textContent='Deleting...';
+  try{
+    await col.doc(m.id).delete();
+    await Promise.all(Object.values(doses).filter(x=>x.medId===m.id).map(x=>col.doc(x.id).delete()));
+    toast(`"${m.name}" was deleted`);
+  }catch(e){toast('Could not delete: '+(e.message||'unknown error'),'e')}
+  confirmMed=null;$('#modal').innerHTML='';refresh();
+}
+
+/* ---------- views ---------- */
+const empty=(icon,title,text,btn='')=>`<div class="empty"><i>${icon}</i><h3>${title}</h3><p>${text}</p>${btn}</div>`;
+const rows=(items,acts)=>items.length?`<ul class="sch">${items.map(i=>`<li class="row ${i.st}"><span class="t">${fmtT(i.t)}</span>${imgTag(i.m.img)}<div class="grow"><strong>${esc(i.m.name)}</strong> <span class="mu">&middot; ${esc(i.m.dosage)}</span>${i.m.water?'<div class="note">&#128167; Drink a glass of water with this dose</div>':''}${acts&&i.m.notes?`<div class="note">${esc(i.m.notes)}</div>`:''}</div><span class="bd ${i.st}">${cap(i.st)}</span>${acts?(i.st==='taken'?`<button class="btn sm" data-act="undo" data-id="${i.id}">Undo</button>`:`<button class="btn p sm" data-act="take" data-id="${i.id}" data-med="${i.m.id}" data-t="${i.t}">Mark as taken</button>`):''}</li>`).join('')}</ul>`:'';
+
+function vDash(){
+  const s=schedule(),act=pm().filter(m=>medStatus(m,today())==='active'),h=new Date().getHours();
+  const first=pname(cur);
+  const st=(n,l)=>`<div class="card stat"><b>${n}</b><span>${l}</span></div>`;
+  return `<div class="head"><div><h1>${h<12?'Good morning':h<18?'Good afternoon':'Good evening'}, ${esc(first)}</h1><p class="mu">Your medicine overview for today.</p></div><button class="btn p" data-nav="add">Add medicine</button></div>
+  <div class="stats">${st(pm().length,'Total medicines')}${st(act.length,'Active medicines')}${st(s.length,'Doses scheduled today')}${st(s.filter(x=>x.st==='taken').length,'Doses taken today')}</div>
+  ${hydCard()}<section class="card"><div class="sh"><h2>Today's schedule</h2><button class="btn sm" data-nav="rem">Open reminders</button></div>
+  ${s.length?rows(s,false):empty('&#128197;','Nothing scheduled for today',pm().length?'None of your medicines are due today.':'Add your first medicine to build your schedule.',pm().length?'':'<button class="btn p" data-nav="add">Add medicine</button>')}</section>`;
+}
+function vMeds(){
+  return `<div class="head"><div><h1>My medicines</h1><p class="mu">All the medicines you have added.</p></div><button class="btn p" data-nav="add">Add medicine</button></div>
+  ${flash?`<div class="al s" role="status">${esc(flash)}</div>`:''}
+  <div class="card flt"><input class="in" id="q" placeholder="Search by name" aria-label="Search medicines" value="${esc(filters.q)}">
+  <select class="in" id="ft" aria-label="Filter by type"><option value="">All types</option>${TYPES.map(t=>`<option value="${t}" ${filters.type===t?'selected':''}>${cap(t)}</option>`).join('')}</select>
+  <select class="in" id="fs" aria-label="Filter by status"><option value="">All statuses</option>${['active','upcoming','completed'].map(t=>`<option value="${t}" ${filters.status===t?'selected':''}>${cap(t)}</option>`).join('')}</select></div>
+  <div id="list"></div>`;
+}
+function medList(){
+  const d=today(),q=filters.q.toLowerCase();
+  const list=pm().filter(m=>(!q||m.name.toLowerCase().includes(q))&&(!filters.type||m.type===filters.type)&&(!filters.status||medStatus(m,d)===filters.status));
+  const filtering=q||filters.type||filters.status;
+  $('#list').innerHTML=list.length?`<div class="grid">${list.map(m=>{const s=medStatus(m,d);return `<article class="card mc ${s}"><div class="mh"><div class="hd">${imgTag(m.img)}<div><h3>${esc(m.name)}</h3><p class="mu">${esc(m.dosage)} &middot; <span class="cap">${m.type}</span></p></div></div><span class="bd ${s}">${cap(s)}</span></div>
+  <p class="mu">${FREQ[m.frequency][0]}</p><div class="chips">${m.times.map(t=>`<span class="chip">${fmtT(t)}</span>`).join('')}</div>
+  <p class="mu">${fmtD(m.start)} to ${fmtD(m.end)}</p>${m.notes?`<div class="note">${esc(m.notes)}</div>`:''}
+  <div class="acts"><button class="btn sm" data-act="edit" data-id="${m.id}">Edit</button><button class="btn sm do" data-act="del" data-id="${m.id}">Delete</button></div></article>`}).join('')}</div>`
+  :`<div class="card">${empty('&#128138;',filtering?'No medicines match your search':'No medicines yet',filtering?'Try a different name or clear the filters.':'Add a medicine to start tracking your schedule.',filtering?'':'<button class="btn p" data-nav="add">Add medicine</button>')}</div>`;
+}
+function timeRows(ts,custom){
+  return ts.map(t=>`<div class="tr"><input type="time" class="in tm" value="${t}" aria-label="Reminder time">${custom&&ts.length>1?'<button type="button" class="x" data-act="rmt" aria-label="Remove time">&times;</button>':''}</div>`).join('')+(custom&&ts.length<10?'<button type="button" class="btn sm" data-act="addt">+ Add time</button>':'');
+}
+const curTimes=()=>$$('.tm').map(i=>i.value);
+function vForm(m){
+  m=m||{name:'',dosage:'',type:'tablet',frequency:'once',times:['08:00'],start:today(),end:'',notes:'',pid:cur,water:false,img:''};formImg=safeImg(m.img);
+  const fe=(id,l,inner)=>`<div class="f"><label for="${id}">${l}</label>${inner}<div class="err" data-e="${id}"></div></div>`;
+  return `<div class="head"><div><h1>${editing?'Edit medicine':'Add medicine'}</h1><p class="mu">Enter the schedule exactly as your doctor or pharmacist gave it to you.</p></div></div>
+  <form class="card" id="mf" novalidate>
+  <div class="g2">${fe('f-name','Medicine name *',`<input class="in" id="f-name" value="${esc(m.name)}" placeholder="e.g. Vitamin D3">`)}
+  ${fe('f-dosage','Dosage *',`<input class="in" id="f-dosage" value="${esc(m.dosage)}" placeholder="e.g. 1 tablet or 5 ml">`)}
+  ${fe('f-type','Medicine type *',`<select class="in" id="f-type">${TYPES.map(t=>`<option value="${t}" ${m.type===t?'selected':''}>${cap(t)}</option>`).join('')}</select>`)}
+  ${fe('f-freq','Frequency *',`<select class="in" id="f-freq">${Object.entries(FREQ).map(([k,v])=>`<option value="${k}" ${m.frequency===k?'selected':''}>${v[0]}</option>`).join('')}</select>`)}</div>
+  <div class="f"><label>Reminder times *</label><div class="tl" id="times">${timeRows(m.times,m.frequency==='custom')}</div><div class="err" data-e="times"></div></div>
+  <div class="g2">${fe('f-start','Start date *',`<input type="date" class="in" id="f-start" value="${m.start}">`)}${fe('f-end','End date *',`<input type="date" class="in" id="f-end" value="${m.end}">`)}</div>
+  ${fe('f-notes','Additional instructions (optional)',`<textarea class="in" id="f-notes" rows="3" placeholder="e.g. Take after meals, as written on your prescription">${esc(m.notes)}</textarea>`)}
+  <div class="f"><label>Medicine photo (optional)</label><div class="tl"><span id="pv">${imgTag(formImg)}</span><input type="file" accept="image/*" id="f-file" aria-label="Choose a photo"><button type="button" class="btn sm" data-act="rmimg">Remove photo</button></div><div class="err" data-e="img"></div></div>
+  <div class="g2">${kids().length?fe('f-pid','This medicine is for',`<select class="in" id="f-pid">${[{id:'me',name:'Me'},...kids()].map(k=>`<option value="${k.id}" ${(m.pid||'me')===k.id?'selected':''}>${esc(k.name)}</option>`).join('')}</select>`):''}<div class="f"><label><input type="checkbox" id="f-water" ${m.water?'checked':''}> Remind me to drink water with this medicine</label></div></div>
+  <div><button class="btn p" id="save" type="submit">${editing?'Save changes':'Save medicine'}</button></div></form>`;
+}
+function vRem(){
+  const s=schedule(),c=x=>s.filter(i=>i.st===x).length,perm='Notification' in window?Notification.permission:'unsupported';
+  const msg={default:'',granted:'<p style="color:var(--green)">Notifications are on. Keep this page open to receive them.</p>',denied:'<p class="err">Notifications are blocked. Allow them in your browser\'s site settings.</p>',unsupported:'<p class="err">This browser does not support notifications.</p>'}[perm];
+  return `<div class="head"><div><h1>Today's reminders</h1><p class="mu">${new Date().toLocaleDateString([],{weekday:'long',day:'numeric',month:'long'})}</p></div></div>
+  <div class="card" style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;border-left:4px solid var(--blue)"><div class="grow"><strong>Browser notifications</strong>
+  <p class="mu" style="font-size:.92rem">Reminders work only while Medico is open in your browser. Reliable background alerts (tab closed or phone locked) need extra setup such as push notifications or an SMS/email service. If notifications do not appear, open this page in its own browser tab.</p>${msg}</div>
+  ${perm==='default'?'<button class="btn p sm" data-act="notif">Enable notifications</button>':''}</div>
+  ${hydCard()}${s.length?`<div class="sum"><span class="bd taken">Taken: ${c('taken')}</span><span class="bd pending">Pending: ${c('pending')}</span><span class="bd missed">Missed: ${c('missed')}</span></div>`:''}
+  <section class="card" style="margin-top:16px">${s.length?rows(s,true):empty('&#9200;','No doses due today','Medicines whose dates include today will show up here.','<button class="btn p" data-nav="add">Add medicine</button>')}</section>`;
+}
+
+/* ---------- navigation & rendering ---------- */
+function go(v,keep){
+  if(kidMode&&!['dash','rem','hist'].includes(v))v='rem';
+  if(!keep){flash='';}
+  if(v==='add'){editing=null;view='form'}else if(v==='edit')view='form';else view=v;
+  $$('.nv').forEach(b=>b.classList.toggle('on',b.dataset.nav===(view==='form'&&editing?'meds':view==='form'?'add':view)));
+  const main=$('#main');
+  if(!ready){main.innerHTML=`<div class="center">${loadErr?`<div class="al e">${esc(loadErr)}</div>`:'Loading your medicines...'}</div>`;return}
+  if(view==='form')main.innerHTML=vForm(editing);
+  else draw()
+  window.scrollTo(0,0);
+}
+// Re-draw without disturbing a form or a search box the person is typing in
+function refresh(){
+  if(!ready||locked||view==='form'||view==='set')return;
+  if(view==='meds'){medList();return}
+  const y=window.scrollY;draw();window.scrollTo(0,y);
+}
+
+/* ---------- form ---------- */
+function setErr(errs){
+  $$('[data-e]').forEach(e=>e.textContent=errs[e.dataset.e.replace('f-','')]||(errs[e.dataset.e]||''));
+  $$('#mf .in').forEach(i=>i.classList.remove('bad'));
+  Object.keys(errs).forEach(k=>{const el=$('#f-'+k);if(el)el.classList.add('bad');if(k==='times')$$('.tm').forEach(i=>i.classList.add('bad'))});
+}
+async function submitForm(){
+  if(saving)return;
+  const v=id=>$('#'+id).value.trim(),f={name:v('f-name'),dosage:v('f-dosage'),type:v('f-type'),frequency:v('f-freq'),times:curTimes(),start:v('f-start'),end:v('f-end'),notes:v('f-notes'),pid:$('#f-pid')?$('#f-pid').value:cur,water:$('#f-water').checked,img:formImg};
+  const e={},[,,min,max]=FREQ[f.frequency];
+  if(!f.name)e.name='Medicine name is required';else if(f.name.length>100)e.name='Use 100 characters or fewer';
+  if(!f.dosage)e.dosage='Dosage is required (for example "1 tablet" or "5 ml")';else if(f.dosage.length>50)e.dosage='Use 50 characters or fewer';
+  if(f.times.some(t=>!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)))e.times='Please fill in every reminder time';
+  else if(new Set(f.times).size!==f.times.length)e.times='Reminder times must be different from each other';
+  else if(f.times.length<min||f.times.length>max)e.times='The number of reminder times does not match the frequency';
+  if(!f.start)e.start='Start date is required';if(!f.end)e.end='End date is required';
+  if(f.start&&f.end&&f.end<f.start)e.end='End date cannot be before the start date';
+  if(f.notes.length>300)e.notes='Use 300 characters or fewer';
+  setErr(e);if(Object.keys(e).length){const first=$('#mf .bad');if(first)first.focus();return}
+  saving=true;$('#save').disabled=true;$('#save').textContent='Saving...';
+  try{
+    const id=editing?editing.id:'med_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    await col.doc(id).set({...f,times:[...f.times].sort(),createdAt:editing?editing.createdAt:Date.now()});
+    flash=editing?'Medicine updated successfully':'Medicine added successfully';editing=null;saving=false;go('meds',true);
+  }catch(err){
+    saving=false;$('#save').disabled=false;$('#save').textContent=editing?'Save changes':'Save medicine';
+    toast('Could not save: '+(err.message||'unknown error'),'e');
+  }
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',async e=>{
+  const nav=e.target.closest('[data-nav]');if(nav){go(nav.dataset.nav);return}
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  if(a==='take'){b.disabled=true;b.textContent='Saving...';markDose(id,meds.find(m=>m.id===b.dataset.med),b.dataset.t)}
+  else if(a==='undo'){b.disabled=true;undoDose(id)}
+  else if(a==='edit'){editing=meds.find(m=>m.id===id);go('edit')}
+  else if(a==='del'){confirmMed=meds.find(m=>m.id===id);$('#modal').innerHTML=`<div class="mb" id="mb"><div class="md" role="dialog" aria-modal="true"><h3>Delete this medicine?</h3><p class="mu">"${esc(confirmMed.name)}" and its dose history will be permanently removed. This cannot be undone.</p><div class="acts"><button class="btn" data-act="cancel">Cancel</button><button class="btn d" id="cdel" data-act="confirm">Delete</button></div></div></div>`}
+  else if(a==='cancel'){confirmMed=null;$('#modal').innerHTML=''}
+  else if(a==='confirm')deleteMed();
+  else if(a==='addt'){const t=curTimes();t.push('12:00');$('#times').innerHTML=timeRows(t,true)}
+  else if(a==='rmt'){const t=curTimes();t.splice($$('.x').indexOf(b),1);$('#times').innerHTML=timeRows(t,true)}
+  else if(a==='notif'){try{await Notification.requestPermission()}catch(_){}refresh()}
+});
+document.addEventListener('submit',e=>{if(e.target.id==='mf'){e.preventDefault();submitForm()}});
+document.addEventListener('change',e=>{
+  if(e.target.id==='f-freq'){const k=e.target.value;$('#times').innerHTML=timeRows(FREQ[k][1],k==='custom')}
+  if(e.target.id==='ft'){filters.type=e.target.value;medList()}
+  if(e.target.id==='fs'){filters.status=e.target.value;medList()}
+});
+document.addEventListener('input',e=>{if(e.target.id==='q'){filters.q=e.target.value;medList()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&confirmMed&&!$('#cdel').disabled){confirmMed=null;$('#modal').innerHTML=''}});
+
+
+/* ---------- Medico extras: themes, ringtones, accounts, family, hydration, assistant ---------- */
+const THEMES={ocean:['Ocean','#cfe6f7',0,'#12435a','#0f9d92'],mint:['Mint','#c8efd9',0,'#1b5e46','#12a37f'],sunset:['Sunset','linear-gradient(135deg,#ffd9b8,#ffb3c1)',0,'#7a2e3a','#e0566b'],lavender:['Lavender','#dccffa',0,'#3f2d7a','#7c5ce0'],sand:['Sand','#efdfb4',0,'#6b4f1d','#c28a12'],night:['Night','#0d1b22',1,'#0b2a38','#0f9d92'],forest:['Forest','#10261c',1,'#0a3d2a','#2fbf71']};
+const TONES={chime:{n:'Chime',s:[[880,.15],[1175,.15],[1568,.3]]},bell:{n:'Bell',s:[[1319,.4],[1047,.4],[1319,.4]]},beep:{n:'Beep',s:[[1000,.12],[0,.08],[1000,.12],[0,.08],[1000,.12]]},melody:{n:'Melody',s:[[523,.15],[659,.15],[784,.15],[1047,.3]]},soft:{n:'Soft',s:[[440,.4],[523,.4]]},off:{n:'Silent',s:[]}};
+let ac;
+function play(k){const q=TONES[k||cfg.tone||'chime'];if(!q||!q.s.length)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();ac.resume();let t=ac.currentTime+.05;for(let r=0;r<2;r++)q.s.forEach(([f,d])=>{if(f){const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.02)}t+=d+.03})}catch(_){}}
+const lum=h=>{const n=parseInt(h.slice(1),16);return(.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255};
+function applyTheme(){
+  const r=document.documentElement,l=$('#bgl'),t=THEMES[cfg.theme],st=(k,v)=>v?r.style.setProperty(k,v):r.style.removeProperty(k);
+  document.body.style.setProperty('background','transparent','important'); // the layer below paints the colour
+  if(cfg.bg){l.style.setProperty('background',cfg.bg,'important');r.dataset.theme=cfg.dark?'dark':'light'}else{l.style.removeProperty('background');delete r.dataset.theme}
+  st('--side',t&&t[3]);st('--teal',t&&t[4]);
+}
+let lastCfg=0;const saveCfg=()=>{lastCfg=Date.now();return safe(()=>col.doc('cfg').set(cfg))};
+async function safe(f){try{await f()}catch(e){toast('Something went wrong: '+((e&&e.message)||e),'e')}}
+const kids=()=>cfg.kids||[],pm=()=>meds.filter(m=>(m.pid||'me')===cur);
+const pname=id=>!id||id==='me'?(acct&&acct.name||userName||'there').split(' ')[0]:(kids().find(k=>k.id===id)||{name:'Child'}).name;
+function draw(){$('#main').innerHTML=pbar()+{dash:vDash,meds:vMeds,rem:vRem,set:vSet,hist:vHist}[view]();if(view==='meds')medList()}
+function pbar(){
+  const k=kids().find(x=>x.id===cur),prof=k?`<div class="card" style="display:flex;gap:12px;align-items:center;margin-bottom:16px">${avatar(k)}<div class="grow"><strong>${esc(k.name)}</strong> <span class="mu">${ageText(k.dob)}</span>${k.notes?`<div class="mu" style="font-size:.9rem">${esc(k.notes)}</div>`:''}</div></div>`:'';
+  if(kidMode)return `<div class="al i" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Child mode: <strong>${esc(pname(kidMode))}</strong></span><button class="btn sm" data-act="kask">Exit (parent password)</button></div>`+prof;
+  return kids().length?`<div style="margin-bottom:16px"><label class="mu" for="cur">Viewing </label><select class="in" id="cur" style="width:auto">${[{id:'me',name:'Me'},...kids()].map(x=>`<option value="${x.id}" ${cur===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>`+prof:'';
+}
+function hydCard(){
+  const w=cfg.water||{},n=water[today()]||0,g=w.goal||8;
+  return `<section class="card" style="margin-bottom:24px"><div class="sh"><h2>&#128167; Hydration</h2><span class="mu">${n} of ${g} glasses today</span></div><div class="bar"><i style="width:${Math.min(100,Math.round(n/g*100))}%"></i></div>
+  <div class="acts" style="margin-top:12px;align-items:center;flex-wrap:wrap"><button class="btn p sm" data-act="gl">+ Log a glass</button><button class="btn sm" data-act="gm" ${n?'':'disabled'}>Undo</button>${w.on?`<span class="mu">Reminder every ${w.every} min, ${fmtT(w.from)} to ${fmtT(w.to)}</span>`:'<button class="btn sm" data-nav="set">Set up water reminders</button>'}</div></section>`;
+}
+function vSet(){
+  const ek=kids().find(k=>k.id===editKid)||{};
+  const w={on:false,every:60,from:'08:00',to:'22:00',goal:8,...(cfg.water||{})};
+  const sel=(a,v)=>a.map(x=>`<option value="${x[0]}" ${String(x[0])===String(v)?'selected':''}>${x[1]}</option>`).join('');
+  return `<div class="head"><div><h1>Settings</h1><p class="mu">Account, background, ringtone, hydration and family.</p></div></div>
+  <section class="card sec"><h2>Account</h2><p><strong>${esc(acct.name)}</strong><br><span class="mu">${esc(acct.email)} &middot; ${esc(acct.phone)}</span></p><p class="mu" style="font-size:.85rem">Email and phone are saved on your account but are not verified by a code. Password reset uses your recovery code.</p><div class="acts"><button class="btn sm" data-act="logout">Log out</button></div></section>
+  <section class="card sec"><h2>Background</h2><div class="tl">${Object.entries(THEMES).map(([k,v])=>`<button class="sw" data-act="theme" data-k="${k}" style="background:${v[1]};color:${v[2]?'#fff':'#17323f'};${cfg.theme===k?'outline:3px solid var(--teal);outline-offset:2px':''}" aria-pressed="${cfg.theme===k}">${v[0]}</button>`).join('')}<label class="mu">Custom <input type="color" id="cbg" value="${/^#/.test(cfg.bg||'')?cfg.bg:'#f1f7fa'}"></label><button class="btn sm" data-act="treset">Reset</button></div></section>
+  <section class="card sec"><h2>Reminder ringtone</h2><div class="tl"><select class="in" id="tone" style="width:auto" aria-label="Ringtone">${sel(Object.entries(TONES).map(([k,v])=>[k,v.n]),cfg.tone||'chime')}</select><button class="btn sm" data-act="pv">Play preview</button></div><p class="mu" style="font-size:.85rem">Plays when a dose or water reminder is due while Medico is open.</p></section>
+  <section class="card sec"><h2>&#128167; Hydration reminders</h2><label><input type="checkbox" data-c="water.on" ${w.on?'checked':''}> Remind me to drink water</label>
+  <div class="g2"><div class="f"><label>Every</label><select class="in" data-c="water.every">${sel([[30,'30 minutes'],[60,'1 hour'],[90,'90 minutes'],[120,'2 hours']],w.every)}</select></div><div class="f"><label>Daily goal (glasses)</label><input class="in" type="number" min="1" max="30" data-c="water.goal" value="${w.goal}"></div>
+  <div class="f"><label>From</label><input class="in" type="time" data-c="water.from" value="${w.from}"></div><div class="f"><label>Until</label><input class="in" type="time" data-c="water.to" value="${w.to}"></div></div></section>
+  <section class="card sec"><h2>Family and child mode</h2><p class="mu" style="font-size:.9rem">Add a child, then choose them when adding a medicine. Child mode lets them see and tick off only their own doses; leaving it needs your password.</p>
+  ${kids().map(k=>`<div class="row">${avatar(k)}<div class="grow"><strong>${esc(k.name)}</strong><div class="mu" style="font-size:.85rem">${ageText(k.dob)||'No date of birth'}</div></div><button class="btn sm" data-act="ek" data-id="${k.id}">Edit</button><button class="btn sm" data-act="kid" data-id="${k.id}">Start child mode</button><button class="btn sm do" data-act="rmk" data-id="${k.id}">Remove</button></div>`).join('')}
+  <div class="card" style="background:var(--bg)"><h3>${editKid?'Edit child profile':'Add a child'}</h3>
+  <div class="g2" style="margin-top:10px"><div class="f"><label for="kn">Name *</label><input class="in" id="kn" maxlength="40" value="${esc(ek.name||'')}"></div><div class="f"><label for="kd">Date of birth</label><input class="in" type="date" id="kd" max="${today()}" value="${esc(ek.dob||'')}"></div></div>
+  <div class="f" style="margin-top:10px"><label for="kno">Notes (for example allergies or the doctor's name)</label><textarea class="in" id="kno" rows="2" maxlength="200">${esc(ek.notes||'')}</textarea></div>
+  <div class="tl" style="margin-top:10px"><span id="kpv">${imgTag(kidImg)}</span><input type="file" accept="image/*" id="kf" aria-label="Choose a photo"></div><div class="err" id="kerr2"></div>
+  <div class="acts"><button class="btn p sm" data-act="addk">${editKid?'Save profile':'Add child'}</button>${editKid?'<button class="btn sm" data-act="ekc">Cancel</button>':''}</div></div></section>`;
+}
+
+/* accounts: salted PBKDF2 hashes only, never the password itself */
+const rnd=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const newRec=()=>rnd(4).toUpperCase().replace(/(.{4})(.{4})/,'$1-$2');
+async function hash(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);const b=await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode(salt),iterations:100000,hash:'SHA-256'},k,256);return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const authErr=m=>$$('.auth [data-e]').forEach(e=>e.textContent=m[e.dataset.e]||'');
+function showAuth(mode,extra){
+  locked=true;view='auth';document.body.classList.add('locked');$('#modal').innerHTML='';
+  const F=(id,l,t='text',ph='')=>`<div class="f"><label for="${id}">${l}</label><input class="in" id="${id}" type="${t}" placeholder="${ph}" autocomplete="off"><div class="err" data-e="${id}"></div></div>`;
+  const T={
+    setup:`<h1>Create your Medico account</h1><p class="mu">Your details are saved privately in your own storage.</p>${F('a-name','Full name')}${F('a-email','Email','email')}${F('a-phone','Phone number','tel','+91 98765 43210')}${F('a-pw','Password (at least 6 characters)','password')}${F('a-pw2','Confirm password','password')}<button class="btn p" data-act="a-setup">Create account</button>`,
+    login:`<h1>Welcome back</h1><p class="mu">Log in to see your medicine schedule.</p>${F('a-email','Email','email')}${F('a-pw','Password','password')}<button class="btn p" data-act="a-login">Log in</button><button class="btn" data-act="a-forgot">Forgot password?</button>`,
+    forgot:`<h1>Reset your password</h1><p class="mu">Enter the email and phone number on your account and the recovery code you saved when you signed up.</p>${F('a-email','Email','email')}${F('a-phone','Phone number','tel')}${F('a-code','Recovery code','text','XXXX-XXXX')}${F('a-pw','New password','password')}<button class="btn p" data-act="a-reset">Reset password</button><button class="btn" data-act="a-back">Back to log in</button>`,
+    code:`<h1>Save your recovery code</h1><p class="mu">It is shown only once. You need it to reset a forgotten password. Write it down somewhere safe.</p><div class="card" style="font-size:1.7rem;font-weight:700;letter-spacing:.1em;text-align:center">${extra}</div><button class="btn p" data-act="a-done">I have saved it</button>`};
+  $('#main').innerHTML=`<div class="auth card">${T[mode]}</div>`;
+}
+async function aSetup(){
+  const g=i=>$('#'+i).value.trim(),e={},name=g('a-name'),email=g('a-email').toLowerCase(),phone=g('a-phone'),pw=$('#a-pw').value,dg=phone.replace(/\D/g,'');
+  if(name.length<2)e['a-name']='Enter your name';
+  if(!/^\S+@\S+\.\S+$/.test(email))e['a-email']='Enter a valid email address';
+  if(!/^\+?[\d\s()-]+$/.test(phone)||dg.length<7||dg.length>15)e['a-phone']='Enter a valid phone number';
+  if(pw.length<6)e['a-pw']='Use at least 6 characters';
+  if(pw!==$('#a-pw2').value)e['a-pw2']='Passwords do not match';
+  authErr(e);if(Object.keys(e).length)return;
+  const salt=rnd(8),rs=rnd(8),rec=newRec();
+  acct={name,email,phone,salt,hash:await hash(pw,salt),rs,rh:await hash(rec,rs)};
+  await col.doc('acct').set(acct);showAuth('code',rec);
+}
+async function aLogin(){
+  if($('#a-email').value.trim().toLowerCase()!==acct.email||await hash($('#a-pw').value,acct.salt)!==acct.hash){authErr({'a-pw':'Incorrect email or password'});return}
+  unlock();
+}
+async function aReset(){
+  const g=i=>$('#'+i).value.trim(),dg=x=>x.replace(/\D/g,'').slice(-10);
+  if(g('a-email').toLowerCase()!==acct.email||dg(g('a-phone'))!==dg(acct.phone)||await hash(g('a-code').toUpperCase(),acct.rs)!==acct.rh){authErr({'a-code':'These details do not match our records'});return}
+  if($('#a-pw').value.length<6){authErr({'a-pw':'Use at least 6 characters'});return}
+  const salt=rnd(8),rs=rnd(8),rec=newRec();
+  acct={...acct,salt,hash:await hash($('#a-pw').value,salt),rs,rh:await hash(rec,rs)};
+  await col.doc('acct').set(acct);showAuth('code',rec);
+}
+function unlock(){unlocked=true;locked=false;document.body.classList.remove('locked');$('#who').textContent=acct.name;userName=acct.name;go('dash')}
+function gate(){if(!acct)showAuth('setup');else if(!unlocked)showAuth('login');else refresh()}
+
+/* assistant chat (asks Claude) */
+let chat=[],chatBusy=false;
+const SYS="You are the Medico assistant inside a medicine reminder app. Help people use the app (adding medicines, reminders, ringtones, child profiles, hydration, backgrounds, account recovery) and share general educational information about medicines and healthy habits. Never diagnose, never recommend a medicine or a dose, and never tell anyone to change or stop a prescribed medicine; for those, tell them to ask their doctor or pharmacist. For emergencies, tell them to contact local emergency services. Keep replies short, friendly and plain.";
+function chatMsg(t,r){const d=document.createElement('div');d.className='m '+r;d.textContent=t;$('#cm').append(d);$('#cm').scrollTop=1e9;return d}
+async function ask(q){
+  q=q.trim();if(chatBusy||!q)return;chatBusy=true;$('#ci').value='';chat.push({r:'User',t:q});chatMsg(q,'u');const w=chatMsg('Thinking...','b');
+  try{
+    const sample=await window.claude.use('sample');if(!sample)throw{code:'none'};
+    const today_=schedule().map(i=>`${i.t} ${i.m.name} (${i.m.dosage}, ${i.st})`).join('; ')||'none';
+    const r=await sample(`${SYS}\nProfile: ${pname(cur)}. Today's doses: ${today_}.\n\nConversation:\n${chat.slice(-8).map(m=>m.r+': '+m.t).join('\n')}\n\nWrite the assistant's next reply.`,{modelTier:'quick',cache:false});
+    w.textContent=r.text.trim();chat.push({r:'Assistant',t:w.textContent});
+  }catch(e){w.textContent=e&&e.code==='not_granted'?'The assistant needs your permission to use Claude. Please allow it and ask again.':e&&e.code==='rate_limited'?'That was too many questions at once. Please wait a moment.':'Sorry, the assistant is not available right now.'}
+  chatBusy=false;
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  const M={'a-setup':aSetup,'a-login':aLogin,'a-reset':aReset,'a-forgot':()=>showAuth('forgot'),'a-back':()=>showAuth('login'),'a-done':unlock};
+  if(M[a]){safe(M[a]);return}
+  if(a==='chat'){$('#chat').classList.toggle('on');if($('#chat').classList.contains('on'))$('#ci').focus()}
+  else if(a==='send')ask($('#ci').value);
+  else if(a==='gl'||a==='gm'){const n=Math.max(0,(water[today()]||0)+(a==='gl'?1:-1));safe(()=>col.doc('water_'+today()).set({n}))}
+  else if(a==='theme'){const t=THEMES[b.dataset.k];cfg.theme=b.dataset.k;cfg.bg=t[1];cfg.dark=!!t[2];saveCfg();applyTheme();draw();toast('Background changed to '+t[0])}
+  else if(a==='treset'){delete cfg.bg;delete cfg.dark;delete cfg.theme;saveCfg();applyTheme();draw();toast('Background reset')}
+  else if(a==='pv')play($('#tone').value);
+  else if(a==='addk'){const n=$('#kn').value.trim(),dob=$('#kd').value,er=$('#kerr2');if(!n){er.textContent="Enter the child's name";return}if(dob>today()){er.textContent='Date of birth cannot be in the future';return}
+    const k={id:editKid||'k'+Date.now().toString(36),name:n,dob,notes:$('#kno').value.trim().slice(0,200),img:kidImg};
+    cfg.kids=editKid?kids().map(x=>x.id===editKid?k:x):[...kids(),k];editKid=null;kidImg='';saveCfg();draw()}
+  else if(a==='ek'){editKid=id;kidImg=safeImg(kids().find(k=>k.id===id).img);draw()}
+  else if(a==='ekc'){editKid=null;kidImg='';draw()}
+  else if(a==='rmimg'){formImg='';$('#pv').innerHTML=imgTag('')}
+  else if(a==='hmark')safe(()=>col.doc(id).set({date:b.dataset.d,medId:b.dataset.med,time:b.dataset.t,status:'taken',takenAt:Date.now()}));
+  else if(a==='rmk'){if(meds.some(m=>m.pid===id))return toast("Delete this child's medicines first",'e');cfg.kids=kids().filter(k=>k.id!==id);if(cur===id)cur='me';saveCfg();draw()}
+  else if(a==='kid'){kidMode=id;cur=id;document.body.classList.add('kid');go('rem')}
+  else if(a==='kask')$('#modal').innerHTML='<div class="mb"><div class="md" role="dialog" aria-modal="true"><h3>Parent password</h3><p class="mu">Enter your Medico password to leave child mode.</p><input class="in" id="kp" type="password" aria-label="Password"><div class="err" id="kerr"></div><div class="acts"><button class="btn" data-act="cancel">Cancel</button><button class="btn p" data-act="kexit">Unlock</button></div></div></div>';
+  else if(a==='kexit')safe(async()=>{if(await hash($('#kp').value,acct.salt)!==acct.hash){$('#kerr').textContent='Incorrect password';return}kidMode=null;document.body.classList.remove('kid');$('#modal').innerHTML='';go('set')});
+  else if(a==='logout'){unlocked=false;kidMode=null;document.body.classList.remove('kid');showAuth('login')}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.c){const k=t.dataset.c.split('.')[1];cfg.water={on:false,every:60,from:'08:00',to:'22:00',goal:8,...(cfg.water||{})};cfg.water[k]=t.type==='checkbox'?t.checked:t.type==='number'?Math.max(1,Math.min(30,+t.value||8)):k==='every'?+t.value:t.value;saveCfg()}
+  else if(t.id==='tone'){cfg.tone=t.value;saveCfg();play(t.value)}
+  else if(t.id==='cbg'){cfg.bg=t.value;cfg.dark=lum(t.value)<.5;delete cfg.theme;saveCfg();applyTheme();draw()}
+  else if(t.id==='cur'){cur=t.value;histMed='';draw()}
+  else if(t.id==='hr'){histRange=+t.value;draw()}
+  else if(t.id==='hm'){histMed=t.value;draw()}
+  else if(t.id==='f-file'||t.id==='kf'){const f=t.files[0];if(!f)return;const kd=t.id==='kf',er=kd?$('#kerr2'):$('[data-e=img]');
+    if(!f.type.startsWith('image/')||f.size>10e6){er.textContent='Choose an image file under 10 MB';return}
+    shrink(f).then(u=>{if(kd){kidImg=u;$('#kpv').innerHTML=imgTag(u)}else{formImg=u;$('#pv').innerHTML=imgTag(u)}er.textContent=''}).catch(x=>er.textContent=x.message)}
+});
+document.addEventListener('input',e=>{if(e.target.id==='cbg'){cfg.bg=e.target.value;cfg.dark=lum(cfg.bg)<.5;delete cfg.theme;applyTheme()}}); // live preview while picking
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;const t=e.target;
+  if(t.closest&&t.closest('.auth')){const b=$('.auth .p');if(b)b.click()}
+  else if(t.id==='ci')ask(t.value);else if(t.id==='kp')$('[data-act=kexit]').click();
+});
+
+
+/* ---------- photos, profiles, dose history ---------- */
+const ds=dt=>`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+const safeImg=x=>typeof x==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(x)?x:'';
+const imgTag=x=>safeImg(x)?`<img class="thumb" src="${safeImg(x)}" alt="Photo">`:'<span class="thumb ph" aria-hidden="true">&#128138;</span>';
+const avatar=k=>safeImg(k.img)?`<img class="thumb round" src="${safeImg(k.img)}" alt="${esc(k.name)}">`:`<span class="thumb ph round" aria-hidden="true">${esc((k.name||'?').charAt(0).toUpperCase())}</span>`;
+function ageText(dob){if(!dob)return'';const b=new Date(dob+'T00:00:00'),n=new Date();const m=(n.getFullYear()-b.getFullYear())*12+n.getMonth()-b.getMonth()-(n.getDate()<b.getDate()?1:0);return m<0?'':m<24?`${m} months old`:`${Math.floor(m/12)} years old`}
+// Shrinks a photo to a small JPEG so it can be saved with the record
+function shrink(file,max=160){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const r=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*r));c.height=Math.max(1,Math.round(img.height*r));c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',.7))};img.onerror=()=>rej(new Error('That file could not be read as an image'));img.src=u})}
+function history(days){
+  const out=[],n=new Date(),td=today(),nowM=mins(nowT()),list=pm().filter(m=>!histMed||m.id===histMed);
+  for(let k=0;k<days;k++){
+    const d=ds(new Date(n.getFullYear(),n.getMonth(),n.getDate()-k));
+    list.forEach(m=>{
+      if(d<m.start||d>m.end||d<ds(new Date(m.createdAt||0)))return; // nothing before the medicine was added
+      m.times.forEach(t=>{
+        const id=`dose_${d}_${m.id}_${t.replace(':','')}`,lg=doses[id];
+        out.push({d,t,m,id,st:lg?lg.status:(d<td||nowM>mins(t)+60)?'missed':'pending',at:lg&&lg.takenAt});
+      });
+    });
+  }
+  return out.sort((a,b)=>b.d.localeCompare(a.d)||a.t.localeCompare(b.t));
+}
+function vHist(){
+  const rows=history(histRange),c=x=>rows.filter(r=>r.st===x).length,ok=c('taken'),bad=c('missed'),pct=ok+bad?Math.round(ok/(ok+bad)*100):null;
+  let last='';
+  const items=rows.map(r=>{
+    const h=r.d!==last?`<li style="margin-top:10px"><h3>${r.d===today()?'Today':fmtD(r.d)}</h3></li>`:'';last=r.d;
+    const at=r.at?`${r.st==='taken'?'Taken':'Skipped'} at ${new Date(r.at).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}${ds(new Date(r.at))!==r.d?' (logged later)':''}`:'';
+    return h+`<li class="row ${r.st}"><span class="t">${fmtT(r.t)}</span>${imgTag(r.m.img)}<div class="grow"><strong>${esc(r.m.name)}</strong> <span class="mu">&middot; ${esc(r.m.dosage)}</span>${at?`<div class="mu" style="font-size:.85rem">${at}</div>`:''}</div><span class="bd ${r.st}">${cap(r.st)}</span>${r.st==='missed'?`<button class="btn sm" data-act="hmark" data-id="${r.id}" data-med="${r.m.id}" data-t="${r.t}" data-d="${r.d}">Mark as taken</button>`:''}</li>`;
+  }).join('');
+  return `<div class="head"><div><h1>Dose history</h1><p class="mu">${esc(pname(cur))}'s recent doses.</p></div></div>
+  <div class="card flt2"><select class="in" id="hr" aria-label="Time range">${[[7,'Last 7 days'],[30,'Last 30 days'],[90,'Last 90 days']].map(x=>`<option value="${x[0]}" ${histRange===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select><select class="in" id="hm" aria-label="Medicine"><option value="">All medicines</option>${pm().map(m=>`<option value="${m.id}" ${histMed===m.id?'selected':''}>${esc(m.name)}</option>`).join('')}</select></div>
+  ${rows.length?`<div class="card" style="margin-bottom:18px"><div class="sh"><h2>Adherence</h2><strong>${pct===null?'-':pct+'%'}</strong></div><div class="bar"><i style="width:${pct||0}%"></i></div><div class="sum"><span class="bd taken">Taken: ${ok}</span><span class="bd missed">Missed: ${bad}</span><span class="bd skipped">Skipped: ${c('skipped')}</span></div></div><ul class="sch">${items}</ul>`:`<div class="card">${empty('&#128337;','No dose history yet','Doses appear here once your medicines have been scheduled. Mark doses as taken on the Reminders page.')}</div>`}`;
+}
+
+/* ---------- reminders timer ---------- */
+function due(msg,body){play();toast(msg,'i');if('Notification' in window&&Notification.permission==='granted'){try{new Notification(msg,{body})}catch(_){}}}
+setInterval(()=>{
+  if(locked||!ready)return;refresh();const n=nowT();
+  schedule(true).filter(i=>i.st==='pending'&&i.t===n).forEach(i=>{
+    const k=today()+i.id;if(notified.has(k))return;notified.add(k);
+    const who=(i.m.pid||'me')==='me'?'':` (${pname(i.m.pid)})`;
+    due('Time for your medicine'+who,`${i.m.name} - ${i.m.dosage}${i.m.water?' - drink a glass of water':''}`);
+  });
+  const w=cfg.water;
+  if(w&&w.on&&n>=w.from&&n<=w.to&&(mins(n)-mins(w.from))%w.every===0){const k='w'+today()+n;if(!notified.has(k)){notified.add(k);due('Time to drink water','Have a glass of water and log it in Medico.')}}
+},20000);
+
+/* ---------- start: connect to this person's private storage ---------- */
+(async()=>{
+  go('dash');
+  const c=window.claude;
+  const [db,user]=c?await Promise.all([c.use('db'),c.use('user')]):[null,null];
+  if(!db||!user){$('#main').innerHTML='<div class="center"><div><h2>Sign in to use Medico</h2><p>Open this page while signed in to Claude so your medicines can be saved to your own account.</p></div></div>';return}
+  try{
+    const id=await user.id();userName=(await user.me()).name||'';
+    col=db.collection('data/users/'+id); // private to this person
+    col.onSnapshot(snap=>{
+      if(!ready&&snap.metadata&&snap.metadata.fromCache&&snap.size===0)return;
+      meds=[];doses={};water={};
+      snap.docs.forEach(d=>{const x=d.data(),k=d.id;if(k.startsWith('med_'))meds.push({...x,id:k});else if(k.startsWith('dose_'))doses[k]={...x,id:k};else if(k.startsWith('water_'))water[k.slice(6)]=x.n||0;else if(k==='cfg'&&Date.now()-lastCfg>3000)cfg=x;else if(k==='acct')acct=x});
+      meds.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      applyTheme();if(!ready){ready=true;gate()}else refresh();
+    },err=>{loadErr='Could not load your medicines: '+err.message;go(view,true)});
+  }catch(err){loadErr='Could not connect to storage: '+err.message;go(view,true)}
+})();
+</script>
+</body>
+</html>
